@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>뉴턴사과 회원정보 수정</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>회원정보 수정 페이지</h1>
+        <p>정보 수정을 위해 현재 비밀번호로 본인 인증이 필요합니다.</p>
+        
+        <!-- 폼 제출 시 handleUpdate 함수를 호출하도록 변경 -->
+        <form id="updateForm" onsubmit="return handleUpdate(event)">
+            
+            <label for="user_id">아이디:</label>
+            <!-- 아이디는 읽기 전용이며, 서버에서 가져온 실제 ID로 채워집니다. -->
+            <input type="text" 
+               id="user_id" 
+               name="id" 
+               required 
+               readonly 
+               value="" 
+               autocomplete="username" disabled> 
+            <br>
+            
+            <label for="current_pw">현재 비밀번호:</label>
+            <input type="password" 
+               id="current_pw" 
+               name="pw" 
+               required 
+               maxlength="20" 
+               autocomplete="current-password"> 
+            <br>
+            
+            <label for="new_nick">수정할 닉네임:</label>
+            <!-- value=""로 초기화하고, 서버에서 가져온 닉네임으로 채워집니다. -->
+            <input type="text" 
+               id="new_nick" 
+               name="nick" 
+               required 
+               maxlength="20" 
+               autocomplete="nickname" value=""> 
+            <br>
+            
+            <!-- 농장 지역 선택 필드 추가 -->
+            <label for="farm_region">농장 지역:</label>
+            <select id="farm_region" name="farm_region" required>
+                <option value="" disabled selected>지역 선택</option>
+                <option value="경남 (밀양, 창원 등)">경남 (밀양, 창원 등)</option>
+                <option value="경북 (안동, 상주 등)">경북 (안동, 상주 등)</option>
+                <option value="기타">기타</option>
+            </select>
+            <br>
+            
+            <label for="new_pw">새 비밀번호 (선택):</label>
+            <input type="password" 
+               id="new_pw" 
+               name="newPw" 
+               maxlength="20" 
+               autocomplete="new-password"> 
+            <br>
+            
+            <button type="submit" class="button primary">회원정보 수정</button>
+        </form>
+
+        <p><a href="/">메인 페이지로 돌아가기</a></p>
+    </div>
+
+    <script>
+        // 현재 로그인된 사용자 정보를 가져와 폼에 채우는 함수
+        const fetchUserInfo = async () => {
+            try {
+                // 현재 로그인된 사용자 정보를 요청하는 API
+                const response = await fetch('/db/user_info'); 
+                const data = await response.json();
+
+                if (data.success) {
+                    const user = data.user;
+                    
+                    // 폼 필드에 값 채우기: ID와 닉네임, 지역
+                    document.getElementById('user_id').value = user.user_id;
+                    document.getElementById('new_nick').value = user.nick;
+                    
+                    // Select 박스의 옵션을 현재 지역으로 설정
+                    const regionSelect = document.getElementById('farm_region');
+                    for (let i = 0; i < regionSelect.options.length; i++) {
+                        if (regionSelect.options[i].value === user.farm_region) {
+                            regionSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                } else {
+                    // 로그인되지 않은 경우 등 오류 처리
+                    alert('회원 정보를 불러오지 못했습니다. 로그인 페이지로 이동합니다.');
+                    location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('사용자 정보 로딩 오류:', error);
+                alert('서버와의 통신에 실패했습니다.');
+                location.href = '/login.html';
+            }
+        };
+
+        // 폼 제출 시 실행되는 함수
+        const handleUpdate = async (event) => {
+            event.preventDefault(); // 폼 기본 제출 동작 막기
+
+            const form = event.target;
+            const data = {
+                // 본인 인증을 위한 현재 비밀번호
+                currentPw: form.pw.value, 
+                // 수정할 정보
+                nick: form.nick.value,
+                farm_region: form.farm_region.value, // 새로 추가된 지역 필드
+                newPw: form.newPw.value || null // 새 비밀번호 (값이 없으면 null)
+            };
+            
+            if (!data.currentPw) {
+                alert("정보 수정을 위해 현재 비밀번호를 반드시 입력해야 합니다.");
+                return;
+            }
+            
+            try {
+                // 회원 정보 수정 API
+                const response = await fetch('/db/update_info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    // 메인 페이지로 이동하여 갱신된 정보 확인
+                    location.href = '/'; 
+                } else {
+                    alert(`정보 수정 실패: ${result.message}`);
+                    // 실패 시 현재 비밀번호 필드를 비워서 재입력하도록 유도
+                    document.getElementById('current_pw').value = ''; 
+                }
+            } catch (error) {
+                console.error('정보 수정 중 오류 발생:', error);
+                alert('서버 오류로 인해 정보 수정에 실패했습니다.');
+            }
+        };
+
+        // 페이지 로드 시 정보 로딩 시작
+        window.onload = fetchUserInfo;
+    </script>
+</body>
+</html>

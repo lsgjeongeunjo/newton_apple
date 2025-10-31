@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>병해충 정보 등록</title>
+    <link rel="stylesheet" href="/style.css"> 
+</head>
+<body>
+    <h1>🐛 병해충 정보 등록</h1>
+    
+    <form action="/db/pest_register" method="post">
+        
+        <label for="pest_name">병해충 명:</label>
+        <input type="text" 
+               id="pest_name" 
+               name="pest_name" 
+               maxlength="100" 
+               required>
+        <br>
+        
+        <label for="category">구분 (병/해충/기타):</label>
+        <select id="category" name="category" required>
+            <option value="">선택하세요</option>
+            <option value="disease">병 (Disease)</option>
+            <option value="pest">해충 (Pest)</option>
+            <option value="other">기타</option>
+        </select>
+        <br>
+
+        <label for="symptom">주요 증상:</label>
+        <textarea id="symptom" name="symptom" rows="5"></textarea> 
+        <br>
+
+        <label for="control_method">예방 및 방제 방법:</label>
+        <textarea id="control_method" name="control_method" rows="5"></textarea>
+        <br>
+        
+        <input type="submit" value="정보 등록">
+    </form>
+    <a href="/">메인으로 돌아가기</a>
+</body>
+</html>

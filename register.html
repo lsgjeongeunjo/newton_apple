@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <link rel="stylesheet" href="/style.css"> 
+</head>
+<body>
+    <div id="content-container">
+        <h1>✅ AI 방제 커뮤니티 회원가입</h1>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="user_id">아이디:</label>
+                <input type="text" id="user_id" name="user_id" required class="full-width">
+            </div>
+
+            <div class="form-group">
+                <label for="pwd">비밀번호:</label>
+                <input type="password" id="pwd" name="pwd" required class="full-width">
+            </div>
+
+            <div class="form-group">
+                <label for="nick">닉네임:</label>
+                <input type="text" id="nick" name="nick" required class="full-width">
+            </div>
+            
+            <div class="form-group">
+                <label for="farm_region">농장 지역:</label>
+                <select id="farm_region" name="farm_region" required class="full-width">
+                    <option value="" disabled selected>지역을 선택하세요</option>
+                    <option value="경남 (밀양, 창원 등)">경남 (밀양, 창원 등)</option>
+                    <option value="경북 (안동, 상주 등)">경북 (안동, 상주 등)</option>
+                    <option value="전남 (순천, 나주 등)">전남 (순천, 나주 등)</option>
+                    <option value="충청 (대전, 천안 등)">충청 (대전, 천안 등)</option>
+                    <option value="경기 (용인, 이천 등)">경기 (용인, 이천 등)</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+
+            <button type="submit" class="button primary-button full-width">회원가입</button>
+            <a href="/login" class="button secondary-button full-width" style="margin-top: 10px;">로그인 페이지로</a>
+        </form>
+    </div>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- JavaScript 로직 -->
+    <!-- ---------------------------------------------------- -->
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); 
+
+            const formData = new FormData(event.target);
+            const userData = Object.fromEntries(formData.entries());
+            
+            console.log('회원가입 데이터:', userData); // 전송 데이터 확인용
+
+            try {
+                // 경로를 /db/register로 명확히 지정
+                const response = await fetch('/db/register', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                // 서버 응답이 OK가 아닐 경우에도 JSON을 파싱하려고 하면 오류가 납니다.
+                // 텍스트를 먼저 확인하여 "Not Found" 오류인지 재확인합니다.
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('서버 응답 텍스트:', text);
+                    if (response.status === 404) {
+                        alert('회원가입 실패: API 경로를 찾을 수 없습니다 (404 Not Found). 서버 라우터 설정을 확인하세요.');
+                    } else {
+                        // 서버가 JSON 에러를 보냈을 경우에만 JSON 파싱 시도
+                        try {
+                            const errorResult = JSON.parse(text);
+                            alert('회원가입 실패: ' + (errorResult.error || '알 수 없는 서버 오류'));
+                        } catch {
+                            alert('회원가입 실패: 서버 응답 형식이 올바르지 않습니다.');
+                        }
+                    }
+                    return; // 실패 처리 후 종료
+                }
+                
+                // 200 OK일 경우에만 JSON 파싱
+                const result = await response.json(); 
+                
+                alert('회원가입이 성공적으로 완료되었습니다! 로그인 페이지로 이동합니다.');
+                window.location.href = '/'; 
+
+            } catch (error) {
+                console.error('회원가입 통신 오류:', error);
+                alert('서버와 통신 중 문제가 발생했습니다. 콘솔을 확인해 주세요.');
+            }
+        });
+    </script>
+</body>
+</html>

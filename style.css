@@ -1,0 +1,106 @@
+/* style.css */
+
+/* ---------------------------------------------------- */
+/* 1. 전역 설정 및 사과 농장 분위기 */
+/* ---------------------------------------------------- */
+body {
+    /* 농장의 따뜻하고 편안한 느낌을 주는 베이지 계열 배경색 */
+    background-color: #fff8e1; 
+    /* 기본 폰트를 깔끔한 산세리프 계열로 설정 */
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 모든 내용을 중앙 정렬 */
+    min-height: 100vh;
+}
+
+h1 {
+    /* 사과색과 유사한 붉은 계열 색상 */
+    color: #d32f2f; 
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #ffab91; /* 부드러운 하단 라인 */
+    padding-bottom: 10px;
+}
+
+/* ---------------------------------------------------- */
+/* 2. 폼(Form) 및 입력 요소 스타일 */
+/* ---------------------------------------------------- */
+form {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px; /* 폼 너비 제한 */
+    margin-top: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #555;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="submit"],
+select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+    font-size: 1em;
+}
+
+/* ---------------------------------------------------- */
+/* 3. 버튼 (Submit) 및 링크 스타일 */
+/* ---------------------------------------------------- */
+input[type="submit"] {
+    /* 사과색 버튼 */
+    background-color: #d32f2f; 
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+input[type="submit"]:hover {
+    background-color: #b71c1c; /* 호버 시 더 진한 색 */
+}
+
+/* 메인 페이지의 링크 스타일 (main.html) */
+body > a {
+    display: inline-block;
+    color: #4a148c; /* 보라색 계열로 눈에 띄게 */
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 15px;
+    margin: 5px;
+    border: 1px solid #4a148c;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+body > a:hover {
+    background-color: #4a148c;
+    color: white;
+}
+
+/* ---------------------------------------------------- */
+/* 4. 기타 요소 */
+/* ---------------------------------------------------- */
+p {
+    color: #795548; /* 갈색 계열 */
+    font-style: italic;
+}

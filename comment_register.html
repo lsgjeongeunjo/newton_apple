@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>댓글 등록</title>
+    <link rel="stylesheet" href="/style.css"> 
+</head>
+<body>
+    <h1>💬 댓글 등록 (임시 페이지)</h1>
+    
+    <form action="/db/comment_register" method="post">
+        
+        <input type="hidden" name="post_idx" value="1"> 
+        <p style="color:#d32f2f;">(현재 댓글은 임시로 '1번 게시글'에 등록됩니다.)</p>
+
+        <input type="hidden" name="user_id" value="test_user_commenter"> 
+        
+        <label for="cmt_content">댓글 내용:</label>
+        <textarea id="cmt_content" 
+                  name="cmt_content" 
+                  rows="4" 
+                  maxlength="900" 
+                  required></textarea>
+        <br>
+        
+        <input type="submit" value="댓글 등록">
+    </form>
+    <a href="/">메인으로 돌아가기</a>
+</body>
+</html>

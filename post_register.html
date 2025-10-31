@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>커뮤니티 글쓰기</title>
+    <link rel="stylesheet" href="/style.css"> 
+</head>
+<body>
+    <h1>✍️ 커뮤니티 글쓰기</h1>
+    
+    <form action="/db/post_register" method="post" enctype="multipart/form-data">
+        
+        <input type="hidden" name="user_id" value="test_writer_id"> 
+        
+        <label for="post_title">제목:</label>
+        <input type="text" 
+               id="post_title" 
+               name="post_title" 
+               maxlength="255" 
+               required>
+        <br>
+        
+        <label for="post_content">내용:</label>
+        <textarea id="post_content" name="post_content" rows="10" required></textarea> 
+        <br>
+
+        <label for="post_file">첨부파일:</label>
+        <input type="file" 
+               id="post_file" 
+               name="post_file"> 
+        <br>
+        
+        <input type="submit" value="게시글 등록">
+    </form>
+    <a href="/">메인으로 돌아가기</a>
+</body>
+</html>

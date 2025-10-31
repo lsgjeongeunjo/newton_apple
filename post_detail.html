@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="post-title">게시글 상세</title>
+    <link rel="stylesheet" href="/style.css"> 
+</head>
+<body>
+    <div id="content-container">
+        <h1>🔍 게시글 상세 내용</h1>
+        
+        <!-- 게시글 데이터 표시 영역 -->
+        <div id="post-data" class="post-card">
+            <h2 id="detail-title">제목 로딩 중...</h2>
+            <p>
+                작성자: <span id="detail-user"></span> | 
+                작성일: <span id="detail-date"></span> | 
+                조회수: <span id="detail-views"></span>
+            </p>
+            <hr>
+            <div id="detail-content" class="content-box">내용 로딩 중...</div>
+            <div id="detail-file"></div>
+        </div>
+        
+        <!-- 버튼 영역 (로그인 상태 및 작성자 여부에 따라 달라짐) -->
+        <div id="button-area" style="margin-top: 20px;">
+            <!-- 수정/삭제 버튼은 JavaScript에서 동적으로 추가됨 -->
+            <a href="/list" class="button">목록으로</a>
+        </div>
+        
+        <!-- 댓글 영역 -->
+        <div id="comment-section" style="margin-top: 40px;">
+            <h3>💬 댓글</h3>
+            <!-- 댓글 목록이 여기에 로드됨 -->
+            <div id="comment-list">댓글 로딩 중...</div>
+
+            <!-- 댓글 등록 폼 -->
+            <form id="comment-form" style="margin-top: 20px;">
+                <input type="hidden" id="post_idx_cmt">
+                <textarea id="cmt_content" placeholder="댓글을 입력하세요..." required style="width: 98%; height: 60px;"></textarea>
+                <button type="submit" class="button">댓글 등록</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- JavaScript 로직 -->
+    <!-- ---------------------------------------------------- -->
+    <script>
+        const contentContainer = document.getElementById('content-container');
+        const postData = document.getElementById('post-data');
+        const buttonArea = document.getElementById('button-area');
+        const commentForm = document.getElementById('comment-form');
+        
+        // URL에서 post_idx 값을 가져옵니다. (예: /detail?post_idx=10)
+        const urlParams = new URLSearchParams(window.location.search);
+        const POST_IDX = urlParams.get('post_idx');
+
+        if (!POST_IDX) {
+            contentContainer.innerHTML = '<h1>잘못된 접근입니다.</h1><a href="/list">목록으로</a>';
+        } else {
+            document.getElementById('post_idx_cmt').value = POST_IDX;
+            fetchPostDetail();
+        }
+
+        let CURRENT_USER_ID = null;
+        let POST_AUTHOR_ID = null;
+
+        // ----------------------------------------------------
+        // 1. 게시글 상세 정보 조회 및 UI 업데이트
+        // ----------------------------------------------------
+        async function fetchPostDetail() {
+            try {
+                // A. 세션 정보 확인 (로그인 사용자 ID 확인)
+                const sessionResponse = await fetch('/db/check_session');
+                const sessionData = await sessionResponse.json();
+                if (sessionData.loggedIn) {
+                    CURRENT_USER_ID = sessionData.user.user_id;
+                }
+
+                // B. 게시글 상세 정보 요청
+                const postResponse = await fetch(`/db/post_detail?post_idx=${POST_IDX}`);
+                const postData = await postResponse.json();
+
+                if (!postResponse.ok) {
+                    alert(postData.error || '게시글을 불러오는데 실패했습니다.');
+                    location.href = '/list';
+                    return;
+                }
+
+                // C. 데이터 반영
+                POST_AUTHOR_ID = postData.post.user_id; // 작성자 ID 저장
+                
+                document.getElementById('post-title').innerText = postData.post.post_title;
+                document.getElementById('detail-title').innerText = postData.post.post_title;
+                document.getElementById('detail-user').innerText = postData.post.user_id;
+                document.getElementById('detail-date').innerText = new Date(postData.post.created_at).toLocaleString();
+                document.getElementById('detail-views').innerText = postData.post.post_views;
+                document.getElementById('detail-content').innerText = postData.post.post_content;
+                
+                const fileDiv = document.getElementById('detail-file');
+                if (postData.post.post_file) {
+                    // 서버의 /uploads 폴더에 접근하도록 경로 지정
+                    fileDiv.innerHTML = `<p>첨부 파일: <a href="/uploads/${postData.post.post_file}" target="_blank">${postData.post.post_file}</a></p>`;
+                } else {
+                    fileDiv.innerHTML = `<p>첨부 파일: 없음</p>`;
+                }
+
+                // D. 버튼 영역 동적 생성 (수정/삭제)
+                createActionButtons();
+
+                // E. 댓글 목록 로드
+                renderComments(postData.comments);
+
+            } catch (error) {
+                console.error("게시글 상세 조회 오류:", error);
+                alert('서버 통신 중 오류가 발생했습니다.');
+                location.href = '/list';
+            }
+        }
+
+        // ----------------------------------------------------
+        // 2. 버튼 동적 생성 로직 (작성자에게만 수정/삭제 버튼 노출)
+        // ----------------------------------------------------
+        function createActionButtons() {
+            // 버튼 초기화
+            buttonArea.innerHTML = '';
+            
+            // 작성자이고 로그인 상태일 때 수정/삭제 버튼 추가
+            if (CURRENT_USER_ID && CURRENT_USER_ID === POST_AUTHOR_ID) {
+                // 수정 버튼
+                const editBtn = document.createElement('a');
+                editBtn.href = `/edit?post_idx=${POST_IDX}`; // /edit 페이지로 이동 (나중에 구현)
+                editBtn.className = 'button';
+                editBtn.style.backgroundColor = '#4CAF50';
+                editBtn.innerText = '수정';
+                buttonArea.appendChild(editBtn);
+
+                // 삭제 버튼
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'button';
+                deleteBtn.style.backgroundColor = '#f44336';
+                deleteBtn.innerText = '삭제';
+                deleteBtn.onclick = deletePost;
+                buttonArea.appendChild(deleteBtn);
+            }
+
+            // 목록 버튼은 항상 추가
+            const listBtn = document.createElement('a');
+            listBtn.href = '/list';
+            listBtn.className = 'button';
+            listBtn.innerText = '목록으로';
+            buttonArea.appendChild(listBtn);
+        }
+
+        // ----------------------------------------------------
+        // 3. 댓글 목록 렌더링
+        // ----------------------------------------------------
+        function renderComments(comments) {
+            const commentListDiv = document.getElementById('comment-list');
+            commentListDiv.innerHTML = ''; // 초기화
+
+            if (comments.length === 0) {
+                commentListDiv.innerHTML = '<p>아직 등록된 댓글이 없습니다.</p>';
+                return;
+            }
+
+            comments.forEach(cmt => {
+                const cmtDiv = document.createElement('div');
+                cmtDiv.className = 'comment-item';
+                // 날짜 포맷팅
+                const cmtDate = new Date(cmt.created_at).toLocaleString();
+                
+                cmtDiv.innerHTML = `
+                    <p style="margin: 5px 0;">
+                        <strong>${cmt.user_id}</strong> (${cmtDate})
+                    </p>
+                    <p style="margin: 5px 0 10px 10px;">${cmt.cmt_content}</p>
+                    <hr style="border: 0; border-top: 1px solid #eee;">
+                `;
+                commentListDiv.appendChild(cmtDiv);
+            });
+        }
+        
+        // ----------------------------------------------------
+        // 4. 글 삭제 (DELETE) 기능
+        // ----------------------------------------------------
+        async function deletePost() {
+            if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/db/post_delete', {
+                    method: 'POST', // DELETE 대신 POST를 사용하고 body에 idx를 보냅니다.
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ post_idx: POST_IDX })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('게시글이 성공적으로 삭제되었습니다.');
+                    location.href = '/list'; // 삭제 후 목록으로 이동
+                } else {
+                    alert(`삭제 실패: ${result.error || '알 수 없는 오류'}`);
+                }
+            } catch (error) {
+                console.error("게시글 삭제 중 오류:", error);
+                alert('서버 통신 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // ----------------------------------------------------
+        // 5. 댓글 등록 폼 제출 처리 (Create)
+        // ----------------------------------------------------
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!CURRENT_USER_ID) {
+                alert('댓글 등록은 로그인 후 이용 가능합니다.');
+                location.href = '/login';
+                return;
+            }
+
+            const cmt_content = document.getElementById('cmt_content').value;
+            
+            const dataToSend = {
+                post_idx: POST_IDX,
+                cmt_content: cmt_content,
+            };
+
+            try {
+                // dbRouter의 /comment_register 로직은 이미 세션에서 user_id를 가져오도록 수정되어 있습니다.
+                const response = await fetch('/db/comment_register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (response.ok) {
+                    alert('댓글 등록 성공!');
+                    document.getElementById('cmt_content').value = ''; // 폼 초기화
+                    fetchPostDetail(); // 댓글 목록 새로고침
+                } else {
+                    const result = await response.json();
+                    alert(`댓글 등록 실패: ${result.error || '로그인 상태를 확인하세요.'}`);
+                }
+                
+            } catch (error) {
+                console.error("댓글 등록 중 오류:", error);
+                alert('서버 통신 중 오류가 발생했습니다.');
+            }
+        });
+
+    </script>
+</body>
+</html>
